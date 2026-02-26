@@ -1,0 +1,120 @@
+import { OpeningHours } from "./OpeningHours";
+import { Room } from "./Room";
+
+export interface CinemaProps {
+  // Prisma génère l'id (@default(cuid())) => il ne doit pas être obligatoire à la création
+  id?: string;
+  name: string;
+  city?: string;
+  address?: string;
+  zipCode?: string;
+  phoneNumber?: string;
+
+  rooms?: Room[];
+  openingHours?: OpeningHours[];
+}
+
+export class Cinema {
+  // Prisma génère l'id => peut être undefined tant que l'objet n'est pas persisté
+  private readonly _id?: string;
+  private _name: string;
+  private _city?: string;
+  private _address?: string;
+  private _zipCode?: string;
+  private _phoneNumber?: string;
+  private _rooms: Room[];
+  private _openingHours: OpeningHours[];
+
+  private constructor(props: CinemaProps) {
+    // IMPORTANT : on ne vérifie PAS props.id ici, car Prisma le crée à l'insert
+    if (!props.name || props.name.trim().length === 0) {
+      throw new Error("Cinema: name is required");
+    }
+
+    this._id = props.id;
+    this._name = props.name.trim();
+    this._city = props.city;
+    this._address = props.address;
+    this._phoneNumber = props.phoneNumber;
+    this._zipCode = props.zipCode;
+    this._rooms = props.rooms ?? [];
+    this._openingHours = props.openingHours ?? [];
+  }
+
+  static create(props: CinemaProps): Cinema {
+    return new Cinema(props);
+  }
+
+  get id(): string | undefined {
+    return this._id;
+  }
+
+  get name(): string {
+    return this._name;
+  }
+
+  get city(): string | undefined {
+    return this._city;
+  }
+
+  get address(): string | undefined {
+    return this._address;
+  }
+
+  get zipCode(): string | undefined {
+    return this._zipCode;
+  }
+
+  get phoneNumber(): string | undefined {
+    return this._phoneNumber;
+  }
+
+  get rooms(): ReadonlyArray<Room> {
+    return this._rooms;
+  }
+
+  get openingHours(): ReadonlyArray<OpeningHours> {
+    return this._openingHours;
+  }
+
+  rename(newName: string) {
+    if (!newName || newName.trim().length === 0) {
+      throw new Error("Cinema: name cannot be empty");
+    }
+    this._name = newName.trim();
+  }
+
+  moveToCity(city?: string) {
+    this._city = city;
+  }
+
+  setAddress(address?: string) {
+    this._address = address;
+  }
+
+  setZipCode(zip?: string) {
+    this._zipCode = zip;
+  }
+
+  setPhoneNumber(phone?: string) {
+    this._phoneNumber = phone;
+  }
+
+  addRoom(room: Room) {
+    if (room.id && this._rooms.find((r) => r.id === room.id)) {
+      throw new Error(`Cinema: room ${room.id} already exists`);
+    }
+    this._rooms.push(room);
+  }
+
+  setOpeningHours(hours: OpeningHours[]) {
+    this._openingHours = [...hours];
+  }
+
+  isOpenAt(date: Date): boolean {
+    const jsDay = date.getDay(); // 0=Sunday, 1=Monday...
+    const hours = this._openingHours.find((h) => h.matchesDay(jsDay));
+    if (!hours) return false;
+    return hours.isOpenAt(date);
+  }
+}
