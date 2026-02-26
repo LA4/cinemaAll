@@ -1,0 +1,12 @@
+[submodule "authcinema"]
+	path = authcinema
+	url = ./authcinema
+[submodule "bookingService"]
+	path = bookingService
+	url = ./bookingService
+[submodule "movieService"]
+	path = movieService
+	url = ./movieService
+[submodule "movie-front"]
+	path = movie-front
+	url = ./movie-front
